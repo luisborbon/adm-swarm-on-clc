@@ -1,0 +1,71 @@
+---
+- name: Check ansible version
+  hosts: localhost
+  gather_facts: False
+  connection: local
+  tasks:
+    - fail: msg="This playbook requires Ansible 2.0 or greater (found {{ ansible_version.full }})."
+      when: "{{ ansible_version|version_compare(2.0,'<') }}"
+
+- name: Get machine resources for swarm worker
+  hosts: localhost
+  gather_facts: True
+  connection: local
+
+  vars:
+    - server_storage: 100
+    - skip_worker: False
+    - async_time: 7200
+    - async_poll: 5
+
+  pre_tasks:
+    - name: include vars for configuration
+      include_vars: "{{ config_vars }}"
+      when: config_vars is defined
+
+    - name: include worker-specific vars for configuration
+      include_vars: "{{ config_vars_worker }}"
+      when: config_vars_worker is defined
+
+    - name: Check for worker_type
+      set_fact:
+        server_type: "{{ worker_type }}"
+      when: worker_type is defined
+
+    - name: Allocate additional_disks /data space on virtual ("standard") workers
+      set_fact:
+        server_additional_disks:
+          - path: /data
+            sizeGB: "{{ server_storage }}"
+            type: partitioned
+          # - path: /data
+          #   sizeGB: "{{ server_storage }}"
+          #   type: partitioned
+      when: server_type == "standard" and server_storage > 0
+
+    - name: Allocate additional_disks /data space on virtual ("hyperscale") workers
+      set_fact:
+        server_additional_disks:
+          - path: /data
+            sizeGB: "{{ server_storage }}"
+            type: partitioned
+      when: server_type == "hyperscale" and server_storage > 0
+
+    - name: Set Async time differently if type = bareMetal
+      set_fact:
+        async_time: 14400
+        async_poll: 10
+      when: server_type == "bareMetal"
+
+    - name: Set anti-affinity policy if type = hyperscale
+      set_fact:
+        anti_affinity_name: "{{ anti_affinity_name }}"
+      when: server_type == "hyperscale"
+
+    - name: Set correct storage type if server type = hyperscale
+      set_fact:
+        storage_type: "hyperscale"
+      when: server_type == "hyperscale"
+
+  roles:
+    - { role: clc-provisioning, when: skip_worker == False }

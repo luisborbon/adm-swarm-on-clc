@@ -1,0 +1,51 @@
+---
+- name: Create loadbalancer
+  hosts: localhost
+  gather_facts: False
+  connection: local
+  tasks:
+    - name: Create Loadbalancer named Mustang
+      clc_loadbalancer:
+        name: Mustang
+        alias: FMC
+        location: UC1
+        description: Shared Loadbalancer for distributing data
+        state: present
+      register: clc
+
+- name: Check ansible version
+  hosts: localhost
+  gather_facts: False
+  connection: local
+  tasks:
+    - fail: msg="This playbook requires Ansible 2.0 or greater (found {{ ansible_version.full }})."
+      when: "{{ ansible_version|version_compare(2.0,'<') }}"
+
+- name: Get machine resources for swarm manager
+  hosts: localhost
+  gather_facts: True
+  connection: local
+
+  # playbook default variable definitions
+  vars:
+    - server_group: manager
+    - datacenter: VA1
+    - server_count: 1
+    - server_memory: 4
+    - server_cpu: 2
+    - skip_manager: False
+    - async_time: 7200
+    - async_poll: 5
+
+  pre_tasks:
+    - name: include vars for configuration
+      include_vars: "{{ config_vars }}"
+      when: config_vars is defined
+
+    - name: include manager-specific vars for configuration
+      include_vars: "{{ config_vars_manager }}"
+      when: config_vars_manager is defined
+
+
+  roles:
+    - { role: clc-provisioning, when: skip_manager == False }

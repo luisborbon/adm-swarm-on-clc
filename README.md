@@ -1,29 +1,28 @@
 
-These scripts handle the creation, deletion and expansion of kubernetes clusters on CenturyLink Cloud.
+These scripts handle the creation, deletion and expansion of docker swarm clusters on CenturyLink Cloud.
 
-You can accomplish all these tasks with a single command. We have made the Ansible playbooks used to perform these tasks available [here](https://github.com/CenturyLinkCloud/adm-kubernetes-on-clc/blob/master/ansible/README.md).
+You can accomplish all these tasks with a single command. We have made the Ansible playbooks used to perform these tasks available [here](https://github.com/CenturyLinkCloud/adm-swarm-on-clc/blob/master/ansible/README.md).
 
 ## Change History
 
 The v0.5 release included the following major changes:
 
-- Kubernetes 1.2
-- Integrated Load Balancing, i.e. Kubernetes services of type LoadBalancer now automatically get a public IP address routed to all minions in the cluster via the CenturyLink Cloud LB service.
+- Integrated Load Balancing, i.e. Swarm services of type LoadBalancer now automatically get a public IP address routed to all workers in the cluster via the CenturyLink Cloud LB service.
 
-For a detailed change history, please visit [the CenturyLink Cloud release notes page](https://github.com/CenturyLinkCloud/adm-kubernetes-on-clc/releases).
+For a detailed change history, please visit [the CenturyLink Cloud release notes page](https://github.com/CenturyLinkCloud/adm-swarm-on-clc/releases).
 
 ## Find Help
 
 If you run into any problems or want help with anything, we are here to help. Reach out to us via any of the following ways:
 
 - Submit a github issue
-- Find us in the Kubernetes Slack Community, channel #provider-centurylink
-- Send an email to kubernetes AT ctl DOT io
-- Visit [our website](https://www.ctl.io/kubernetes/)
+- Find us in the Docker Swarm Slack Community, channel #provider-centurylink
+- Send an email to swarm AT ctl DOT io
+- Visit [our website](https://www.ctl.io/swarm/)
 
 ## Clusters of VMs or Physical Servers, your choice.
 
-- We support Kubernetes clusters on both Virtual Machines or Physical Servers. If you want to use physical servers for the worker nodes (minions), simple use the --minion_type=bareMetal flag.
+- We support Docker Swarm clusters on both Virtual Machines or Physical Servers. If you want to use physical servers for the worker nodes, simple use the --worker_type=bareMetal flag.
 - For more information on physical servers, visit: [https://www.ctl.io/bare-metal/](https://www.ctl.io/bare-metal/))
 - Physical serves are only available in the VA1 and GB3 data centers.
 - VMs are available in all 13 of our public cloud locations
@@ -45,7 +44,7 @@ After you have all the requirements met, please follow these instructions to ins
 1) Clone this repository and cd into it.
 
 ```shell
-git clone https://github.com/CenturyLinkCloud/adm-kubernetes-on-clc
+git clone https://github.com/CenturyLinkCloud/adm-swarm-on-clc
 ```
 
 2) Install all requirements, including
@@ -81,10 +80,10 @@ guide to install the requirements and install the script.
   python get-pip.py
 
   # installing this repository
-  mkdir -p ~home/k8s-on-clc
-  cd ~home/k8s-on-clc
-  git clone https://github.com/CenturyLinkCloud/adm-kubernetes-on-clc.git
-  cd adm-kubernetes-on-clc/
+  mkdir -p ~home/swarm-on-clc
+  cd ~home/swarm-on-clc
+  git clone https://github.com/CenturyLinkCloud/adm-swarm-on-clc.git
+  cd adm-swarm-on-clc/
   pip install -r requirements.txt
 
   # getting started
@@ -95,32 +94,31 @@ guide to install the requirements and install the script.
 
 ## Cluster Creation
 
-To create a new Kubernetes cluster, simply run the kube-up.sh script. A complete
+To create a new Docker Swarm cluster, simply run the swarm-up.sh script. A complete
 list of script options and some examples are listed below.
 
 ```shell
 export CLC_CLUSTER_NAME=[name of kubernetes cluster]
-cd ./adm-kubernetes-on-clc
-bash kube-up.sh -c="$CLC_CLUSTER_NAME"
+cd ./adm-swarm-on-clc
+bash swarm-up.sh -c="$CLC_CLUSTER_NAME"
 ```
 
 It takes about 15 minutes to create the cluster. Once the script completes, it
-will output some commands that will help you setup kubectl on your machine to
-point to the new cluster.
+will output some commands that will help you setup docker on swarm mode on your machine to point to the new cluster.
 
 When the cluster creation is complete, the configuration files for it are stored
 locally on your administrative host, in the following directory
 
 ```shell
-> CLC_CLUSTER_HOME=$HOME/.clc_kube/$CLC_CLUSTER_NAME/
+> CLC_CLUSTER_HOME=$HOME/.clc_swarm/$CLC_CLUSTER_NAME/
 ```
 
 
 #### Cluster Creation: Script Options
 
 ```shell
-Usage: kube-up.sh [OPTIONS]
-Create servers in the CenturyLinkCloud environment and initialize a Kubernetes cluster
+Usage: swarm-up.sh [OPTIONS]
+Create servers in the CenturyLinkCloud environment and initialize a Docker Swarm cluster
 Environment variables
   CLC_CLUSTER_NAME (may be set with command-line option)
   CLC_V2_API_USERNAME (required)
@@ -128,24 +126,22 @@ Environment variables
 
 
 Most options (both short and long form) require arguments, and must include "="
-between option name and option value. _--help_ and _--etcd_separate_cluster_ do
+between option name and option value. _--help_ does
 not take arguments
 
      -h (--help)                   display this help and exit
      -c= (--clc_cluster_name=)     set the name of the cluster, as used in CLC group names
      -d= (--datacenter=)           VA1 (default)
-     -m= (--minion_count=)         number of kubernetes minion nodes
-     -mem= (--vm_memory=)          number of GB ram for each minion
-     -cpu= (--vm_cpu=)             number of virtual cps for each minion node
-     -storage= (--vm_storage=)     additional disk storage for each minion node (default 100GB)
-     -t= (--minion_type=)          "standard" [default, a VM] or "bareMetal" [a physical server]
+     -m= (--worker_count=)         number of kubernetes worker nodes
+     -mem= (--vm_memory=)          number of GB ram for each worker
+     -cpu= (--vm_cpu=)             number of virtual cps for each worker node
+     -storage= (--vm_storage=)     additional disk storage for each worker node (default 100GB)
+     -t= (--worker_type=)          "standard" [default, a VM] or "bareMetal" [a physical server]
      -phyid= (--server_config_id=) if obtaining a bareMetal server, this configuration id
                                    must be set to one of:
                                       physical_server_20_core
                                       physical_server_12_core
                                       physical_server_4_core
-     --etcd_separate_cluster       create a separate cluster of three etcd nodes,
-                                   otherwise run etcd on the master node
      --network_id=                 vlan name to use for the created hosts. Uses
                                    default if not set. If network does not exist
                                    host creation will fail.
@@ -153,29 +149,29 @@ not take arguments
 
 ## Cluster Expansion
 
-To expand an existing Kubernetes cluster, run the ```add-kube-node.sh```
+To expand an existing Kubernetes cluster, run the ```add-swarm-node.sh```
 script. A complete list of script options and some examples are listed [[below]](####Cluster Expansion: Script Options).
 This script must be run from the same host that created the cluster (or a host
-that has the cluster artifact files stored in ```~/.clc_kube/$cluster_name```).
+that has the cluster artifact files stored in ```~/.clc_swarm/$cluster_name```).
 
 ```shell
-cd ./adm-kubernetes-on-clc
-bash add-kube-node.sh -c="name_of_kubernetes_cluster" -m=2
+cd ./adm-swarm-on-clc
+bash add-swarm-node.sh -c="name_of_swarm_cluster" -m=2
 ```
 
 #### Cluster Expansion: Script Options
 
 ```shell
-Usage: add-kube-node.sh [OPTIONS]
+Usage: add-swarm-node.sh [OPTIONS]
 Create servers in the CenturyLinkCloud environment and add to an
-existing CLC kubernetes cluster
+existing CLC swarm cluster
 
 Environment variables CLC_V2_API_USERNAME and CLC_V2_API_PASSWD must be set in
 order to access the CenturyLinkCloud API
 
      -h (--help)                   display this help and exit
      -c= (--clc_cluster_name=)     set the name of the cluster, as used in CLC group names
-     -m= (--minion_count=)         number of kubernetes minion nodes to add
+     -m= (--worker_count=)         number of kubernetes worker nodes to add
 
 ```
 
@@ -191,154 +187,89 @@ python delete_cluster.py --clc_cluster_name=clc_cluster_name --datacenter=DC1
 
 2) Use the CenturyLink Cloud UI. To delete a cluster, log into the CenturyLink
 Cloud control portal and delete the parent server group that contains the
-Kubernetes Cluster.
+Docker Swarm Cluster.
 
 ## Examples
 
-Create a cluster with name of k8s_1, 1 master node and 3 worker minions (on physical machines), in VA1
+Create a cluster with name of swarm_1, 1 manager node and 3 workers nodes (on physical machines), in VA1
 
 ```shell
- bash kube-up.sh --clc_cluster_name=k8s_1 --minion_type=bareMetal --minion_count=3 --datacenter=VA1
+ bash swarm-up.sh --clc_cluster_name=swarm_1 --worker_type=bareMetal --worker_count=3 --datacenter=VA1
 ```
 
-Create a cluster with name of k8s_2, 1 master node and 1 worker minions with no additional disk storage, in VA1
+Create a cluster with name of swarm_2, 1 manager node and 1 worker node with no additional disk storage, in VA1
 
 ```shell
- bash kube-up.sh --clc_cluster_name=k8s_2 --vm_storage=0 --minion_count=1 --datacenter=VA1
+ bash swarm-up.sh --clc_cluster_name=swarm_2 --vm_storage=0 --worker_count=1 --datacenter=VA1
 ```
 
-Create a cluster with name of k8s_3, an HA etcd cluster on 3 VMs and 6 worker minions (on VMs), in VA1
+Create a cluster with name of swarm_3, manager nodes on 3 VMs and 6 worker nodes (on VMs), in VA1
 
 ```shell
- bash kube-up.sh --clc_cluster_name=k8s_3 --minion_type=standard --minion_count=6 --datacenter=VA1 --etcd_separate_cluster=yes
+ bash swarm-up.sh --clc_cluster_name=swarm_3 --worker_type=standard --worker_count=6 --datacenter=VA1
 ```
 
-Create a cluster with name of k8s_4, 1 master node, and 10 worker minions (on VMs) with higher mem/cpu, in UC1 on a particular network
+Create a cluster with name of swarm_4, 1 manager node, and 10 worker nodes (on VMs) with higher mem/cpu, in UC1 on a particular network
 
 ```shell
-bash kube-up.sh --clc_cluster_name=k8s_4 --minion_type=standard --minion_count=10 --datacenter=UC1 --network_id=vlan_2200_10.141.200 -mem=6 -cpu=4
+bash swarm-up.sh --clc_cluster_name=swarm_4 --worker_type=standard --worker_count=10 --datacenter=UC1 --network_id=vlan_2200_10.141.200 -mem=6 -cpu=4
 ```
-
-
 
 ## Cluster Features and Architecture
 
-We configue the Kubernetes cluster with the following features:
+We configue the Docker Swarm cluster with the following features:
 
-- KubeDNS: DNS resolution and service discovery
 - Heapster/InfluxDB: For metric collection. Needed for Grafana and auto-scaling.
-- Grafana: Kubernetes/Docker metric dashboard
-- KubeUI: Simple web interface to view kubernetes state
-- Kube Dashboard: New web interface to interact with your cluster
+- Grafana: Swarm/Docker metric dashboard
 
-We use the following to create the kubernetes cluster:
+We use the following to create the swarm cluster:
 
-- Kubernetes 1.2
 - Unbuntu 14.04
-- Flannel 0.5.5
 - Docker 1.9.1
-- Etcd 2.2.5
 
 ## Optional add-ons
 
 * Logging: We offer an integrated centralized logging ELK platform so that all
-  Kubernetes and docker logs get sent to the ELK stack. To install the ELK stack
-  and configure Kubernetes to send logs to it, follow [the log
-  aggregation documentation](https://github.com/CenturyLinkCloud/adm-kubernetes-on-clc/blob/master/log_aggregration.md). Note: We don't install this by default as
+  docker logs get sent to the ELK stack. To install the ELK stack
+  and configure the swarm to send logs to it, follow [the log
+  aggregation documentation](https://github.com/CenturyLinkCloud/adm-swarm-on-clc/blob/master/log_aggregration.md). Note: We don't install this by default as
   the footprint isn't trivial.
 
 ## Cluster management
 
-The most widely used tool for managing a kubernetes cluster is the command-line
-utility ```kubectl```.  If you do not already have a copy of this binary on your
-administrative machine, you may run the script ```install_kubectl.sh``` which will
-download it and install it in ```/usr/bin/local```.
-
-The script requires that the environment variable ```CLC_CLUSTER_NAME``` be defined
-
-```install_kubectl.sh``` also writes a configuration file which will embed the necessary
-authentication certificates for the particular cluster.  The configuration file is
-written to the  ```${CLC_CLUSTER_HOME}/kube``` directory
-
-```shell
-export KUBECONFIG=${CLC_CLUSTER_HOME}/kube/config
-kubectl version
-kubectl cluster-info
-```
-
-### Accessing the cluster programmatically
-
-It's possible to use the locally-stored client certificates to access the api server. For example, you may want to use any of the [Kubernetes API client libraries](https://github.com/kubernetes/kubernetes/blob/master/docs/devel/client-libraries.md) to program against your Kubernetes cluster in the programming language of your choice.
-
-To demostrate how to use these locally stored certificates, we provide the folowing example of using ```curl``` to communicate to the master api server via https:
-
-```shell
-curl \
-   --cacert ${CLC_CLUSTER_HOME}/pki/ca.crt \
-   --key ${CLC_CLUSTER_HOME}/pki/kubecfg.key \
-   --cert ${CLC_CLUSTER_HOME}/pki/kubecfg.crt https://${MASTER_IP}:6443
-```
-
-But please note, this _does not_ work out of the box with the curl binary distributed with OSX.
-
-### Accessing the cluster with a browser
-
-We install two UIs on Kubernetes. The orginal KubeUI and [the newer kube
-dashboard](/docs/user-guide/ui/). When you create a cluster, the script should output URLs for these
-interfaces like this:
-
-KubeUI is running at ```https://${MASTER_IP}:6443/api/v1/proxy/namespaces/kube-system/services/kube-ui```
-kubernetes-dashboard is running at ```https://${MASTER_IP}:6443/api/v1/proxy/namespaces/kube-system/services/kubernetes-dashboard```
-
-Note on Authentication to the UIs: The cluster is set up to use basic
-authentication for the user _admin_.   Hitting the url at
-```https://${MASTER_IP}:6443``` will require accepting the self-signed certificate
-from the apiserver, and then presenting the admin password written to file at:
-
-```> _${CLC_CLUSTER_HOME}/kube/admin_password.txt_```
-
+The tool for managing a swarm cluster is the command-line
+utility ```docker```.
 
 ### Configuration files
 
 Various configuration files are written into the home directory *CLC_CLUSTER_HOME* under
-```.clc_kube/${CLC_CLUSTER_NAME}``` in several subdirectories. You can use these files
+```.clc_swarm/${CLC_CLUSTER_NAME}``` in several subdirectories. You can use these files
 to access the cluster from machines other than where you created the cluster from.
 
-- ```config/```: Ansible variable files containing parameters describing the master and minion hosts
+- ```config/```: Ansible variable files containing parameters describing the manager and worker hosts
 - ```hosts/```: hosts files listing access information for the ansible playbooks
-- ```kube/```: ```kubectl``` configuration files, and the basic-authentication password for admin access to the Kubernetes API
 - ```pki/```: public key infrastructure files enabling TLS communication in the cluster
 - ```ssh/```: SSH keys for root access to the hosts
 
 
-## ```kubectl``` usage examples
+## ```docker``` on swarm mode usage examples
 
-There are a great many features of _kubectl_. Here are a few examples
+There are a great many features of _docker_ on swarm mode. Here are a few examples
 
-List existing nodes, pods, services and more, in all namespaces, or in just one:
-
-```shell
-kubectl get nodes
-kubectl get --all-namespaces services
-kubectl get --namespace=kube-system replicationcontrollers
-```
-
-The Kubernetes API server exposes services on web URLs, which are protected by requiring
-client certificates.  If you run a kubectl proxy locally, ```kubectl``` will provide
-the necessary certificates and serve locally over http.
+List existing nodes, stacks, services and more:
 
 ```shell
-kubectl proxy -p 8001
+docker node ls
+docker service ls
+docker stack ls
 ```
-
-Then, you can access urls like ```http://127.0.0.1:8001/api/v1/proxy/namespaces/kube-system/services/kube-ui/``` without the need for client certificates in your browser.
 
 ## LoadBalancer integration.
 
-Our Kubernetes code includes definitions of CenturyLink Cloud as a provider, which includes integration of the CLC Load Balancer services. When a Kubernetes service is defined as type LoadBalancer, a public IP address is automatically obtained and mapped to the service endpoint.
+Our Docker Swarm code includes definitions of CenturyLink Cloud as a provider, which includes integration of the CLC Load Balancer services. When a Docker Swarm service is defined as type LoadBalancer, a public IP address is automatically obtained and mapped to the service endpoint.
 
 
-## What Kubernetes features do not work on CenturyLink Cloud
+## What Docker Swarm features do not work on CenturyLink Cloud
 
 These are the known items that don't work on CenturyLink cloud but do work on other cloud providers:
 
@@ -349,7 +280,7 @@ These are the known items that don't work on CenturyLink cloud but do work on ot
 
 ## Ansible Files
 
-If you want more information about our Ansible files, please [read this file](https://github.com/CenturyLinkCloud/adm-kubernetes-on-clc/blob/master/ansible/README.md)
+If you want more information about our Ansible files, please [read this file](https://github.com/CenturyLinkCloud/adm-swarm-on-clc/blob/master/ansible/README.md)
 
 
 ## License
