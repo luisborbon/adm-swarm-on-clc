@@ -32,6 +32,5 @@
       include_vars: "{{ config_vars_manager }}"
       when: config_vars_manager is defined
 
-
   roles:
     - { role: clc-provisioning, when: skip_manager == False }

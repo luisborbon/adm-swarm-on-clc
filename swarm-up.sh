@@ -223,79 +223,75 @@ CONFIG
   #### Part1a
   echo "Part1a - Building out the infrastructure on CLC"
 
-  ansible-playbook create-manager-hosts.yml \
-      -e config_vars=${CLC_CLUSTER_HOME}/config/manager_config.yml -vvv
-
-   ansible-playbook create-worker-hosts.yml \
-       -e config_vars=${CLC_CLUSTER_HOME}/config/worker_config.yml -vvv
-
   # background these in order to run them in parallel
-#   pids=""
-#
-#   { ansible-playbook create-manager-hosts.yml \
-#       -e config_vars=${CLC_CLUSTER_HOME}/config/manager_config.yml;
-#   } &
-#   pids="$pids $!"
-#
-#   { ansible-playbook create-worker-hosts.yml \
-#       -e config_vars=${CLC_CLUSTER_HOME}/config/worker_config.yml;
-#   } &
-#   pids="$pids $!"
-#
-#   # -----------------------------------------------------
-#   # a _wait_ checkpoint to make sure these CLC hosts were
-#   # created safely, exiting if there were problems
-#   # -----------------------------------------------------
-#   set +e
-#   failed=0
-#   ps $pids
-#   for pid in $pids
-#   do
-#     wait $pid
-#     exit_val=$?
-#     if [ $exit_val != 0 ]
-#     then
-#       echo "process $pid failed with exit value $exit_val"
-#       failed=$exit_val
-#     fi
-#   done
-#
-#   if [ $failed != 0 ]
-#   then
-#     exit $failed
-#   fi
-#   set -e
-#   # -----------------------------------------------------
-#
-#   # write timestamp into flag file
-#   date +%Y-%m-%dT%H-%M-%S%z > $created_flag
-#
+  pids=""
+
+  { ansible-playbook create-manager-hosts.yml \
+      -e config_vars=${CLC_CLUSTER_HOME}/config/manager_config.yml;
+  } &
+  pids="$pids $!"
+
+  { ansible-playbook create-worker-hosts.yml \
+      -e config_vars=${CLC_CLUSTER_HOME}/config/worker_config.yml;
+  } &
+  pids="$pids $!"
+
+  # -----------------------------------------------------
+  # a _wait_ checkpoint to make sure these CLC hosts were
+  # created safely, exiting if there were problems
+  # -----------------------------------------------------
+  set +e
+  failed=0
+  ps $pids
+  for pid in $pids
+  do
+    wait $pid
+    exit_val=$?
+    if [ $exit_val != 0 ]
+    then
+      echo "process $pid failed with exit value $exit_val"
+      failed=$exit_val
+    fi
+  done
+
+  if [ $failed != 0 ]
+  then
+    exit $failed
+  fi
+  set -e
+  # -----------------------------------------------------
+
+  # write timestamp into flag file
+  date +%Y-%m-%dT%H-%M-%S%z > $created_flag
+
 fi # checking [ -e $created_flag ]
 
 #### verify access
 ansible -i ${CLC_CLUSTER_HOME}/hosts -m shell -a uptime all
 
+#### Part2
+echo "Part2 - Install ansible galaxy roles"
+ansible-galaxy install grycap.swarm
+
 #### Part3
 echo "Part3 - Setting up swarm"
 ansible-playbook -i ${CLC_CLUSTER_HOME}/hosts install_swarm.yml \
+    -e clc_cluster_name=${CLC_CLUSTER_NAME} \
     -e config_vars_manager=${CLC_CLUSTER_HOME}/config/manager_config.yml \
-    -e config_vars_worker=${CLC_CLUSTER_HOME}/config/worker_config.yml \
+    -e config_vars_worker=${CLC_CLUSTER_HOME}/config/worker_config.yml
 
+# @TODO: Update docker compose templates to install standard addons
 #### Part4
 # echo "Part4 - Installing standard addons"
-# standard_addons='{"swarm_apps":["skydns","dashboard","kube-ui","monitoring"]}'
+# standard_addons='{"swarm_apps":["dashboard","monitoring"]}'
 # ansible-playbook -i ${CLC_CLUSTER_HOME}/hosts deploy_swarm_applications.yml \
 #      -e ${standard_addons}
 
 cat <<MESSAGE
 
-Cluster build is complete. To administer the cluster, install and configure
-swarm with
+Cluster build is complete. To administer the cluster, access any manager and configure
+the swarm with
 
-  export CLC_CLUSTER_NAME=$CLC_CLUSTER_NAME
-  ./install-swarm.sh
-
-If accessing the cluster services with a browser, the basic-authentication password
-for the admin user is found in ${CLC_CLUSTER_HOME}/swarm/admin_password.txt
+  docker node ls
 
 MESSAGE

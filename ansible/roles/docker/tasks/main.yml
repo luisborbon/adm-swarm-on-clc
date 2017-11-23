@@ -14,18 +14,17 @@
 - name: Add entry ubuntu 14.04.
   lineinfile:
     dest: /etc/apt/sources.list.d/docker.list
-    line: "deb https://apt.dockerproject.org/repo ubuntu-trusty main"
-    regexp: ".*.dockerproject..*"
+    line: "deb [arch=amd64] https://download.docker.com/linux/ubuntu trusty stable"
+    regexp: ".*.docker..*"
     state: present
 
 - name: Update apt cache
   apt:
     update_cache: "yes"
 
-# Pin this to version 1.9 due to some issues (probably minor...) with 1.10
 - name: Install docker package.
   apt:
-    name: docker-engine=1.9.1-0~trusty
+    name: docker-ce=17.09.0~ce-0~ubuntu
     force: "yes"
     state: present
 

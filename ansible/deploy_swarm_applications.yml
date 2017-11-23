@@ -15,4 +15,4 @@
     - name: set manager ip address
       set_fact: ip_address={{ ansible_default_ipv4.address }}
   roles:
-    - swarm-manifest
+    - docker-compose

@@ -1,0 +1,66 @@
+---
+- name: Gather facts on all hosts in cluster
+  hosts: all
+  gather_facts: True
+
+- name: Provision swarm manager node
+  hosts: swarm-manager
+  gather_facts: True
+  vars_files:
+    - vars.yml
+    - "{{ config_vars_manager }}"
+  vars:
+    - clc_cluster_home: "{{ lookup('env','HOME') }}/.clc_swarm/{{ clc_cluster_name }}"
+    - swarm_config_local: "{{ clc_cluster_home }}/swarm"
+
+  pre_tasks:
+    - name: set manager ip address
+      set_fact: manager_ip={{ ansible_default_ipv4.address }}
+
+  roles:
+    # - docker # defaults to grycap.docker
+    - grycap.swarm
+
+- name: Save manager configuration information to worker_config
+  hosts: localhost
+
+  vars:
+    - clc_cluster_home: "{{ lookup('env','HOME') }}/.clc_swarm/{{ clc_cluster_name }}"
+
+  tasks:
+    - name: manager_ip -> worker config
+      lineinfile:
+        dest: "{{ clc_cluster_home }}/config/worker_config.yml"
+        line: "manager_ip: {{ hostvars[ item ].ansible_default_ipv4.address  }}"
+        state: present
+        regexp: "^manager_ip:"
+      with_items: "{{groups['swarm-manager'][0]}}"
+
+
+- name: Provision swarm worker node
+  hosts: swarm-worker
+
+  vars_files:
+    - vars.yml
+    - "{{ config_vars_worker }}"
+  vars:
+    - clc_cluster_home: "{{ lookup('env','HOME') }}/.clc_swarm/{{ clc_cluster_name }}"
+
+  pre_tasks:
+    - name: include vars for worker configuration
+      include_vars: "{{ config_vars_worker }}"
+      when: config_vars_worker is defined
+
+    - set_fact:
+        manager_ip: "{{ hostvars[ item ].ansible_default_ipv4.address }}"
+      with_items: "{{groups['swarm-manager'][0]}}"
+      when: manager_ip is not defined
+
+    - name: set max container value if bareMetal server
+      set_fact:
+        swarm_max_containers: 100
+      when: (worker_type is defined) and (worker_type == 'bareMetal')
+
+  roles:
+    # - docker # defaults to grycap.docker
+    - { role: 'grycap.swarm', swarn_type_of_node: 'wn', swarn_manager_address: "{{ manager_ip }}" }

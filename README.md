@@ -217,11 +217,6 @@ bash swarm-up.sh --clc_cluster_name=swarm_4 --worker_type=standard --worker_coun
 
 ## Cluster Features and Architecture
 
-We configue the Docker Swarm cluster with the following features:
-
-- Heapster/InfluxDB: For metric collection. Needed for Grafana and auto-scaling.
-- Grafana: Swarm/Docker metric dashboard
-
 We use the following to create the swarm cluster:
 
 - Unbuntu 14.04
@@ -248,7 +243,6 @@ to access the cluster from machines other than where you created the cluster fro
 
 - ```config/```: Ansible variable files containing parameters describing the manager and worker hosts
 - ```hosts/```: hosts files listing access information for the ansible playbooks
-- ```pki/```: public key infrastructure files enabling TLS communication in the cluster
 - ```ssh/```: SSH keys for root access to the hosts
 
 

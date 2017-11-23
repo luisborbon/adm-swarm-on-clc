@@ -1,3 +1,0 @@
----
-# override this if a public ip is available
-public_k8s_ip: 127.0.0.1

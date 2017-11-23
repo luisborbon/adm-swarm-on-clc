@@ -14,7 +14,8 @@ order to access the CenturyLinkCloud API
 
      -h (--help)                   display this help and exit
      -c= (--clc_cluster_name=)     set the name of the cluster, as used in CLC group names
-     -m= (--worker_count=)         number of swarm worker nodes to add
+     -m= (--manager_count=)        number of swarm manager nodes to add
+     -w= (--worker_count=)         number of swarm worker nodes to add
 EOF
 }
 
@@ -24,6 +25,7 @@ function exit_message() {
 }
 
 # set count=1 as default
+manager_count=0
 worker_count=1
 
 for i in "$@"
@@ -36,7 +38,11 @@ case $i in
     CLC_CLUSTER_NAME="${i#*=}"
     shift # past argument=value
     ;;
-    -m=*|--worker_count=*)
+    -m=*|--manager_count=*)
+    manager_count="${i#*=}"
+    shift # past argument=value
+    ;;
+    -w=*|--worker_count=*)
     worker_count="${i#*=}"
     shift # past argument=value
     ;;
@@ -73,6 +79,7 @@ cd ansible
 # set the _add_nodes_ variable
 ansible-playbook create-worker-hosts.yml \
   -e add_nodes=1 \
+  -e manager_count=$manager_count \
   -e worker_count=$worker_count \
   -e config_vars_manager=${CLC_CLUSTER_HOME}/config/manager_config.yml \
   -e config_vars_worker=${CLC_CLUSTER_HOME}/config/worker_config.yml
