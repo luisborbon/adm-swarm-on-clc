@@ -98,7 +98,7 @@ To create a new Docker Swarm cluster, simply run the swarm-up.sh script. A compl
 list of script options and some examples are listed below.
 
 ```shell
-export CLC_CLUSTER_NAME=[name of kubernetes cluster]
+export CLC_CLUSTER_NAME=[name of swarm cluster]
 cd ./adm-swarm-on-clc
 bash swarm-up.sh -c="$CLC_CLUSTER_NAME"
 ```
@@ -132,7 +132,7 @@ not take arguments
      -h (--help)                   display this help and exit
      -c= (--clc_cluster_name=)     set the name of the cluster, as used in CLC group names
      -d= (--datacenter=)           VA1 (default)
-     -m= (--worker_count=)         number of kubernetes worker nodes
+     -m= (--worker_count=)         number of swarm worker nodes
      -mem= (--vm_memory=)          number of GB ram for each worker
      -cpu= (--vm_cpu=)             number of virtual cps for each worker node
      -storage= (--vm_storage=)     additional disk storage for each worker node (default 100GB)
@@ -171,7 +171,7 @@ order to access the CenturyLinkCloud API
 
      -h (--help)                   display this help and exit
      -c= (--clc_cluster_name=)     set the name of the cluster, as used in CLC group names
-     -m= (--worker_count=)         number of kubernetes worker nodes to add
+     -m= (--worker_count=)         number of swarm worker nodes to add
 
 ```
 

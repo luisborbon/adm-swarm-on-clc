@@ -21,7 +21,7 @@ information.
 
 #### Installing Kubernetes
 
-In part 3, the _kube-up.sh_ script calls two playbooks to install swarm, with
+In part 3, the _swarm-up.sh_ script calls two playbooks to install swarm, with
 differerent configurations for the manager and worker nodes.
 
 `ansible-playbook  create-worker-hosts.yml \

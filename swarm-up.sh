@@ -32,7 +32,7 @@ not take arguments
      -h (--help)                   display this help and exit
      -c= (--clc_cluster_name=)     set the name of the cluster, as used in CLC group names
      -d= (--datacenter=)           VA1 (default)
-     -m= (--worker_count=)         number of kubernetes worker nodes
+     -m= (--worker_count=)         number of swarm worker nodes
      -mem= (--vm_memory=)          number of GB ram for each worker
      -cpu= (--vm_cpu=)             number of virtual cps for each worker node
      -storage= (--vm_storage=)     additional disk storage for each worker node (default 100GB)
@@ -280,8 +280,8 @@ ansible-playbook -i ${CLC_CLUSTER_HOME}/hosts install_swarm.yml \
     -e config_vars_manager=${CLC_CLUSTER_HOME}/config/manager_config.yml \
     -e config_vars_worker=${CLC_CLUSTER_HOME}/config/worker_config.yml
 
-# @TODO: Update docker compose templates to install standard addons
 #### Part4
+# @TODO: Update docker compose templates to install standard addons
 # echo "Part4 - Installing standard addons"
 # standard_addons='{"swarm_apps":["dashboard","monitoring"]}'
 # ansible-playbook -i ${CLC_CLUSTER_HOME}/hosts deploy_swarm_applications.yml \

@@ -81,7 +81,7 @@
   when: add_nodes is defined and add_nodes
 
 ##########
-# Add public ip for ssh and kubernetes https port
+# Add public ip for ssh and https port
 # This task is run only if the assign_public_ip variable is set
 - name: Create public IP For SSH connection and api connections
   clc_publicip:
